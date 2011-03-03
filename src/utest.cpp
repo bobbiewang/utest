@@ -4,6 +4,8 @@
 #include <functional>
 
 namespace UTEST {
+    std::string TestInfo::s_name;
+
     int TestResult::s_passed_count = 0;
     int TestResult::s_failed_count = 0;
 
@@ -83,6 +85,7 @@ namespace UTEST {
         Test* test = s_head;
 
         while(test) {
+            TestInfo::setName(test->getName());
             test->run();
             test = test->getNext();
         }

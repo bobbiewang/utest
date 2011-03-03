@@ -23,6 +23,16 @@ namespace UTEST {
         int         m_linenumber;
     };
 
+    class TestInfo
+    {
+    public:
+        static void        setName(const char* name) { s_name = name;         }
+        static const char* getName()                 { return s_name.c_str(); }
+
+    private:
+        static std::string s_name;
+    };
+
     class TestResult
     {
     public:
@@ -128,6 +138,7 @@ namespace UTEST {
     {
     public:
         Test(const char* name): m_name(name), m_next(NULL) {};
+        Test(): m_next(NULL) {};
         // use default ~Test()
 
         const char* getName() const     { return m_name.c_str(); }
@@ -160,28 +171,28 @@ namespace UTEST {
 }
 
 #ifdef DO_CHECK_LOG
-#define LOG_CHECK std::cout << "TEST " << getName() << " @ " << __FILE__ << ":" << __LINE__ << std::endl;
+#define LOG_CHECK std::cout << "TEST " << UTEST::TestInfo::getName() << " @ " << __FILE__ << ":" << __LINE__ << std::endl;
 #else
 #define LOG_CHECK
 #endif
 
 #define CHECK_TRUE(actual) \
     LOG_CHECK \
-    (UTEST::checkTrue((actual), UTEST::CheckDetail(getName(), __FILE__, __LINE__)))
+    (UTEST::checkTrue((actual), UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__)))
 
 #define CHECK_FALSE(actual) \
     LOG_CHECK \
-    (UTEST::checkFalse((actual), UTEST::CheckDetail(getName(), __FILE__, __LINE__)))
+    (UTEST::checkFalse((actual), UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__)))
 
 #define CHECK_EQ(expected, actual) \
     LOG_CHECK \
     (UTEST::checkEqual((expected), (actual), true, \
-                       UTEST::CheckDetail(getName(), __FILE__, __LINE__)))
+                       UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__)))
 
 #define CHECK_NE(expected, actual) \
     LOG_CHECK \
     (UTEST::checkEqual((expected), (actual), false, \
-                       UTEST::CheckDetail(getName(), __FILE__, __LINE__)))
+                       UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__)))
 
 #define TEST(name)                                           \
     class Test##name : public UTEST::Test                    \
