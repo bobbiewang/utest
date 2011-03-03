@@ -44,17 +44,19 @@ namespace UTEST {
     class CheckDetail
     {
     public:
-        CheckDetail(const char* testname, const char* filename, int linenumber):
-          m_testname(testname), m_filename(filename), m_linenumber(linenumber) {}
+        CheckDetail(const char* testname, const char* filename, int linenumber, const char* expression):
+            m_testname(testname), m_filename(filename), m_linenumber(linenumber), m_expression(expression) {}
 
-          const char* getTestName() const   { return m_testname.c_str(); }
-          const char* getFileName() const   { return m_filename.c_str(); }
-          int         getLineNumber() const { return m_linenumber;       }
+          const char* getTestName() const     { return m_testname.c_str();   }
+          const char* getFileName() const     { return m_filename.c_str();   }
+          int         getLineNumber() const   { return m_linenumber;         }
+          const char* getExpression() const   { return m_expression.c_str(); }
 
     private:
         std::string m_testname;
         std::string m_filename;
         int         m_linenumber;
+        std::string m_expression;
     };
 
     class TestInfo
@@ -113,6 +115,9 @@ namespace UTEST {
         std::cout << testdetail.getFileName() << "(" << testdetail.getLineNumber()
                   << ") : error: Failure in  *" << testdetail.getTestName()
                   << "* : " << os.str() << std::endl;
+        std::cout << "  Expression: " << testdetail.getExpression() << std::endl
+                  << "    Expected: " << expected << std::endl
+                  << "      Actual: " << actual << std::endl;
 
         throw CheckFailure();
     }
@@ -215,21 +220,21 @@ namespace UTEST {
 
 #define CHECK_TRUE(actual) \
     LOG_CHECK \
-    (UTEST::checkTrue((actual), UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__)))
+    (UTEST::checkTrue((actual), UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__, #actual)))
 
 #define CHECK_FALSE(actual) \
     LOG_CHECK \
-    (UTEST::checkFalse((actual), UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__)))
+    (UTEST::checkFalse((actual), UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__, #actual)))
 
 #define CHECK_EQ(expected, actual) \
     LOG_CHECK \
     (UTEST::checkEqual((expected), (actual), true, \
-                       UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__)))
+                       UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__, #actual)))
 
 #define CHECK_NE(expected, actual) \
     LOG_CHECK \
     (UTEST::checkEqual((expected), (actual), false, \
-                       UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__)))
+                       UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__, #actual)))
 
 #define TEST(name)                                           \
     class Test##name : public UTEST::Test                    \
