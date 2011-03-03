@@ -7,10 +7,10 @@
 
 
 namespace UTEST {
-    class TestDetail
+    class CheckDetail
     {
     public:
-        TestDetail(const char* testname, const char* filename, int linenumber):
+        CheckDetail(const char* testname, const char* filename, int linenumber):
           m_testname(testname), m_filename(filename), m_linenumber(linenumber) {}
 
           const char* getTestName() const   { return m_testname.c_str(); }
@@ -39,7 +39,7 @@ namespace UTEST {
 
     template< typename Expected, typename Actual >
     void reportFailure(const Expected& expected, const Actual& actual,
-                       bool require_eq, const TestDetail& testdetail)
+                       bool require_eq, const CheckDetail& testdetail)
     {
         std::ostringstream os;
 
@@ -79,7 +79,7 @@ namespace UTEST {
     };
 
     template< typename T >
-    void checkTrue(const T& actual, const TestDetail& testdetail)
+    void checkTrue(const T& actual, const CheckDetail& testdetail)
     {
         if (! actual) {
             reportFailure("true", "false", true, testdetail);
@@ -90,7 +90,7 @@ namespace UTEST {
     }
 
     template< typename T >
-    void checkFalse(const T& actual, const TestDetail& testdetail)
+    void checkFalse(const T& actual, const CheckDetail& testdetail)
     {
         if (actual) {
             reportFailure("false", "true", true, testdetail);
@@ -101,10 +101,10 @@ namespace UTEST {
     }
 
     template< typename Expected, typename Actual >
-    void checkEqual(const Expected&   expected,
-                    const Actual&     actual,
-                    bool              require_eq,
-                    const TestDetail& testdetail)
+    void checkEqual(const Expected&    expected,
+                    const Actual&      actual,
+                    bool               require_eq,
+                    const CheckDetail& testdetail)
     {
         if (check_traits<Expected, Actual>::equal(expected, actual) != require_eq) {
             reportFailure(expected, actual, require_eq, testdetail);
@@ -115,14 +115,14 @@ namespace UTEST {
     }
 
     void checkEqual(const char* expected, const char* actual,
-                    bool  require_eq, const TestDetail& testdetail);
+                    bool  require_eq, const CheckDetail& testdetail);
     void checkEqual(char* expected, char* actual,
-                    bool  require_eq, const TestDetail& testdetail);
+                    bool  require_eq, const CheckDetail& testdetail);
     void checkEqual(char* expected, const char* actual,
-                    bool  require_eq, const TestDetail& testdetail);
+                    bool  require_eq, const CheckDetail& testdetail);
     // TODO: why cannot use check_traits to compare "xxx" with char[4]
     void checkEqual(const char* expected, char* actual,
-                    bool  require_eq, const TestDetail& testdetail);
+                    bool  require_eq, const CheckDetail& testdetail);
 
     class Test
     {
@@ -167,21 +167,21 @@ namespace UTEST {
 
 #define CHECK_TRUE(actual) \
     LOG_CHECK \
-    (UTEST::checkTrue((actual), UTEST::TestDetail(getName(), __FILE__, __LINE__)))
+    (UTEST::checkTrue((actual), UTEST::CheckDetail(getName(), __FILE__, __LINE__)))
 
 #define CHECK_FALSE(actual) \
     LOG_CHECK \
-    (UTEST::checkFalse((actual), UTEST::TestDetail(getName(), __FILE__, __LINE__)))
+    (UTEST::checkFalse((actual), UTEST::CheckDetail(getName(), __FILE__, __LINE__)))
 
 #define CHECK_EQ(expected, actual) \
     LOG_CHECK \
     (UTEST::checkEqual((expected), (actual), true, \
-                       UTEST::TestDetail(getName(), __FILE__, __LINE__)))
+                       UTEST::CheckDetail(getName(), __FILE__, __LINE__)))
 
 #define CHECK_NE(expected, actual) \
     LOG_CHECK \
     (UTEST::checkEqual((expected), (actual), false, \
-                       UTEST::TestDetail(getName(), __FILE__, __LINE__)))
+                       UTEST::CheckDetail(getName(), __FILE__, __LINE__)))
 
 #define TEST(name)                                           \
     class Test##name : public UTEST::Test                    \

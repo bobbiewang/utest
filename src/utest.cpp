@@ -8,7 +8,7 @@ namespace UTEST {
     int TestResult::s_failed_count = 0;
 
     void CheckStringsEqual(const char* expected, const char* actual,
-                           bool require_eq, const TestDetail& testdetail)
+                           bool require_eq, const CheckDetail& testdetail)
     {
         if (expected == NULL && actual == NULL) {
             if (require_eq)
@@ -47,25 +47,25 @@ namespace UTEST {
     }
 
     void checkEqual(const char* expected, const char* actual,
-                    bool require_eq, const TestDetail& testdetail)
+                    bool require_eq, const CheckDetail& testdetail)
     {
         CheckStringsEqual(expected, actual, require_eq, testdetail);
     }
 
     void checkEqual(char* expected, char* actual,
-                    bool require_eq, const TestDetail& testdetail)
+                    bool require_eq, const CheckDetail& testdetail)
     {
         CheckStringsEqual(expected, actual, require_eq, testdetail);
     }
 
     void checkEqual(char* expected, const char* actual,
-                    bool require_eq, const TestDetail& testdetail)
+                    bool require_eq, const CheckDetail& testdetail)
     {
         CheckStringsEqual(expected, actual, require_eq, testdetail);
     }
 
     void checkEqual(const char* expected, char* actual,
-                    bool require_eq, const TestDetail& testdetail)
+                    bool require_eq, const CheckDetail& testdetail)
     {
         CheckStringsEqual(expected, actual, require_eq, testdetail);
     }
