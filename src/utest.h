@@ -13,9 +13,9 @@ namespace UTEST {
         TestDetail(const char* testname, const char* filename, int linenumber):
           m_testname(testname), m_filename(filename), m_linenumber(linenumber) {}
 
-          const char* getTestName() const { return m_testname.c_str(); }
-          const char* getFileName() const { return m_filename.c_str(); }
-          int         getLineNumber() const { return m_linenumber; }
+          const char* getTestName() const   { return m_testname.c_str(); }
+          const char* getFileName() const   { return m_filename.c_str(); }
+          int         getLineNumber() const { return m_linenumber;       }
 
     private:
         std::string m_testname;
@@ -130,9 +130,9 @@ namespace UTEST {
         Test(const char* name): m_name(name), m_next(NULL) {};
         // use default ~Test()
 
-        const char* getName() const { return m_name.c_str(); }
-        Test*       getNext() const { return m_next;         }
-        void        setNext(Test* next) { m_next = next;     }
+        const char* getName() const     { return m_name.c_str(); }
+        Test*       getNext() const     { return m_next;         }
+        void        setNext(Test* next) { m_next = next;         }
 
         virtual void run() {};
 
@@ -159,24 +159,27 @@ namespace UTEST {
     int runAllTests();
 }
 
-#define CHECK_LOG
-    // std::cout << "TEST " << getName() << " @ " << __FILE__ << ":" << __LINE__ << std::endl;
+#ifdef DO_CHECK_LOG
+#define LOG_CHECK std::cout << "TEST " << getName() << " @ " << __FILE__ << ":" << __LINE__ << std::endl;
+#else
+#define LOG_CHECK
+#endif
 
 #define CHECK_TRUE(actual) \
-    CHECK_LOG \
+    LOG_CHECK \
     (UTEST::checkTrue((actual), UTEST::TestDetail(getName(), __FILE__, __LINE__)))
 
 #define CHECK_FALSE(actual) \
-    CHECK_LOG \
+    LOG_CHECK \
     (UTEST::checkFalse((actual), UTEST::TestDetail(getName(), __FILE__, __LINE__)))
 
 #define CHECK_EQ(expected, actual) \
-    CHECK_LOG \
+    LOG_CHECK \
     (UTEST::checkEqual((expected), (actual), true, \
                        UTEST::TestDetail(getName(), __FILE__, __LINE__)))
 
 #define CHECK_NE(expected, actual) \
-    CHECK_LOG \
+    LOG_CHECK \
     (UTEST::checkEqual((expected), (actual), false, \
                        UTEST::TestDetail(getName(), __FILE__, __LINE__)))
 
