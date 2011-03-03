@@ -34,24 +34,39 @@
 
 #include "../src/utest.h"
 
+#pragma warning(disable : 4996)
+
 struct Strings
 {
-    char*       str;
-    std::string s;
+    std::string ss;             // stl string
+    const char* cstr;           // const string
+    char*       dstr;           // dynamic string
+    char        sstr[4];        // static string
 
     Strings()
     {
-        str = "abc";
-        s   = "abc";
+        ss   = "abc";
+        cstr = "abc";
+        dstr = new char[4];
+        strcpy(dstr, "abc");
+        strcpy(sstr, "abc");
+    }
+
+    ~Strings()
+    {
+        delete[] dstr;
     }
 };
 
 TEST_F(TestStringAssertions, Strings)
 {
-    CHECK_EQ(str,  s.c_str());
+    CHECK_EQ("abc", ss.c_str()); // TODO: doesn't support CHECK_EQ("abc", ss), CHECK_EQ(ss, ss)
+    CHECK_EQ("abc", cstr);
+    CHECK_EQ("abc", dstr);
+    CHECK_EQ("abc", sstr);
 }
 
-struct DemoHelperMethodInFixture
+struct HelperMethodInFixture
 {
     int i;
 
@@ -62,11 +77,11 @@ struct DemoHelperMethodInFixture
 
     void verify()
     {
-        CHECK_EQ(98, i);
+        CHECK_EQ(99, i);
     }
 };
 
-TEST_F(Demo, DemoHelperMethodInFixture)
+TEST_F(Demo, HelperMethodInFixture)
 {
     setup();
     verify();
@@ -74,7 +89,10 @@ TEST_F(Demo, DemoHelperMethodInFixture)
 
 TEST(SampleFailure)
 {
-    CHECK_EQ(1, 2);
+    int number = 2;
+    CHECK_EQ(1, number);
+
+    CHECK_FALSE("Cannot reach here because previous check fails.");
 }
 
 int main()
