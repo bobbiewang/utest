@@ -17,6 +17,11 @@ TEST_F(TestStringAssertions, Strings)
     CHECK_EQ(str,  s.c_str());
 }
 
+TEST(SampleFailure)
+{
+    CHECK_EQ(1, 2);
+}
+
 int main()
 {
     UTEST::runAllTests();
