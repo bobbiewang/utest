@@ -81,6 +81,8 @@ namespace UTEST {
         static int s_failed_count;
     };
 
+    class CheckFailure {};
+
     template< typename Expected, typename Actual >
     void reportFailure(const Expected& expected, const Actual& actual,
                        bool require_eq, const CheckDetail& testdetail)
@@ -112,6 +114,7 @@ namespace UTEST {
                   << ") : error: Failure in  *" << testdetail.getTestName()
                   << "* : " << os.str() << std::endl;
 
+        throw CheckFailure();
     }
 
     template< typename Expected, typename Actual >
@@ -126,8 +129,8 @@ namespace UTEST {
     void checkTrue(const T& actual, const CheckDetail& testdetail)
     {
         if (! actual) {
-            reportFailure("true", "false", true, testdetail);
             TestResult::increaseFailedCount();
+            reportFailure("true", "false", true, testdetail);
         } else {
             TestResult::increasePassedCount();
         }
@@ -137,8 +140,8 @@ namespace UTEST {
     void checkFalse(const T& actual, const CheckDetail& testdetail)
     {
         if (actual) {
-            reportFailure("false", "true", true, testdetail);
             TestResult::increaseFailedCount();
+            reportFailure("false", "true", true, testdetail);
         } else {
             TestResult::increasePassedCount();
         }
@@ -151,8 +154,8 @@ namespace UTEST {
                     const CheckDetail& testdetail)
     {
         if (check_traits<Expected, Actual>::equal(expected, actual) != require_eq) {
-            reportFailure(expected, actual, require_eq, testdetail);
             TestResult::increaseFailedCount();
+            reportFailure(expected, actual, require_eq, testdetail);
         } else {
             TestResult::increasePassedCount();
         }

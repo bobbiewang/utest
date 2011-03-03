@@ -50,8 +50,8 @@ namespace UTEST {
             if (require_eq)
                 TestResult::increasePassedCount();
             else {
-                reportFailure("NULL", "NULL", require_eq, testdetail);
                 TestResult::increaseFailedCount();
+                reportFailure("NULL", "NULL", require_eq, testdetail);
             }
             return;
         }
@@ -77,8 +77,8 @@ namespace UTEST {
         if (require_eq && strcmp(expected, actual) == 0) {
             TestResult::increasePassedCount();
         } else {
-            reportFailure(expected, actual, require_eq, testdetail);
             TestResult::increaseFailedCount();
+            reportFailure(expected, actual, require_eq, testdetail);
         }
     }
 
@@ -120,7 +120,14 @@ namespace UTEST {
 
         while(test) {
             TestInfo::setName(test->getName());
-            test->run();
+            try {
+                test->run();
+            }
+            catch (CheckFailure&)
+            {
+                // can count failed tests later
+            }
+
             test = test->getNext();
         }
     }
@@ -139,15 +146,15 @@ namespace UTEST {
         int total_count  = passed_count + failed_count;
 
         if (total_count == 0) {
-            std::cout << "No test!" << std::endl;
+            std::cout << "No check!" << std::endl;
             return 1;
         }
 
         if (failed_count)
             std::cout << "Summary : error: " << failed_count << " out of " << total_count
-                      << " tests failed." << std::endl;
+                      << " checks failed." << std::endl;
         else
-            std::cout << "Summary : All " << total_count << " tests passed." << std::endl;
+            std::cout << "Summary : All " << total_count << " checks passed." << std::endl;
 
         return failed_count;
     }
