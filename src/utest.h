@@ -277,3 +277,9 @@ namespace UTEST {
     UTEST::TestListAdder adder##Fixture##Name(&test##Fixture##Name##Instance); \
                                                                                \
     void Test##Fixture##Name::run()
+
+#define UTEST_MAIN \
+    int main(int argc, char** argv) \
+    {                               \
+        UTEST::runAllTests();       \
+    }
