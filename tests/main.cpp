@@ -95,7 +95,9 @@ TEST(SampleFailure)
     CHECK_FALSE("Cannot reach here because previous check fails.");
 }
 
-int main()
+DIS_TEST(LongTimeSample)
 {
-    UTEST::runAllTests();
+    CHECK_TRUE("Use --include-disabled to run this test.");
 }
+
+UTEST_MAIN
