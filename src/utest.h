@@ -179,20 +179,31 @@ namespace UTEST {
     class Test
     {
     public:
-        Test(const char* name): m_name(name), m_next(NULL) {};
+        Test(const char* name): m_name(name), m_next(NULL), m_enabled(true) {};
         Test(): m_next(NULL) {};
         // use default ~Test()
 
         const char* getName() const     { return m_name.c_str(); }
         Test*       getNext() const     { return m_next;         }
         void        setNext(Test* next) { m_next = next;         }
+        bool        enabled() const     { return m_enabled;      }
 
         virtual void run() {};
+
+    protected:
+        bool        m_enabled;
 
     private:
         std::string m_name;
         Test*       m_next;
     };
+
+    class DisabledTest : public Test
+    {
+    public:
+        DisabledTest(const char* name): Test(name) { m_enabled = false; }
+    };
+
 
     class TestList
     {
@@ -236,11 +247,17 @@ namespace UTEST {
     LOG_CHECK \
     (UTEST::checkEqual((expected), (actual), false, UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)))
 
-#define TEST(Name)                                           \
-    class Test##Name : public UTEST::Test                    \
+#define TEST(Name)     TEST_EX(Name, UTEST::Test)
+#define DIS_TEST(Name) TEST_EX(Name, UTEST::DisabledTest)
+
+#define TEST_F(Name, Fixture)     TEST_F_EX(Name, Fixture, UTEST::Test)
+#define DIS_TEST_F(Name, Fixture) TEST_F_EX(Name, Fixture, UTEST::DisabledTest)
+
+#define TEST_EX(Name, TestClass)                             \
+    class Test##Name : public TestClass                      \
     {                                                        \
     public:                                                  \
-        Test##Name() : Test(#Name) {}                        \
+        Test##Name() : TestClass(#Name) {}                   \
         virtual void run();                                  \
     } test##Name##Instance;                                  \
                                                              \
@@ -248,11 +265,11 @@ namespace UTEST {
                                                              \
     void Test##Name::run()
 
-#define TEST_F(Name, Fixture)                                                  \
-    class Test##Fixture##Name : public UTEST::Test, public Fixture             \
+#define TEST_F_EX(Name, Fixture, TestClass)                                    \
+    class Test##Fixture##Name : public TestClass, public Fixture               \
     {                                                                          \
     public:                                                                    \
-        Test##Fixture##Name() : Test(#Fixture "/" #Name) {}                    \
+        Test##Fixture##Name() : TestClass(#Fixture "/" #Name) {}               \
     private:                                                                   \
         virtual void run();                                                    \
     } test##Fixture##Name##Instance;                                           \

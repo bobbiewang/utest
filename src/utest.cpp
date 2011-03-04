@@ -121,7 +121,8 @@ namespace UTEST {
         while(test) {
             TestInfo::setName(test->getName());
             try {
-                test->run();
+                if (test->enabled())
+                    test->run();
             }
             catch (CheckFailure&)
             {
