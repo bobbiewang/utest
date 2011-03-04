@@ -38,6 +38,8 @@
 #include <functional>
 
 namespace UTEST {
+    bool MonoState::s_include_disabled = false;
+
     std::string TestInfo::s_name;
 
     int TestResult::s_passed_count = 0;
@@ -121,7 +123,7 @@ namespace UTEST {
         while(test) {
             TestInfo::setName(test->getName());
             try {
-                if (test->enabled())
+                if (test->enabled() || MonoState::getIncludeDisabled())
                     test->run();
             }
             catch (CheckFailure&)
@@ -136,6 +138,12 @@ namespace UTEST {
     TestListAdder::TestListAdder(Test* test)
     {
         TestList::addTest(test);
+    }
+
+    void init(int argc, char** argv)
+    {
+        if (argc == 2 && strcmp("--include-disabled", argv[1]) == 0)
+            MonoState::setIncludeDisabled(true);
     }
 
     int runAllTests()

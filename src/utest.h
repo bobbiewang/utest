@@ -41,6 +41,16 @@
 
 
 namespace UTEST {
+    class MonoState
+    {
+    public:
+        static bool getIncludeDisabled()       { return s_include_disabled; }
+        static void setIncludeDisabled(bool v) { s_include_disabled = v;    }
+
+    private:
+        static bool s_include_disabled;
+    };
+
     class CheckDetail
     {
     public:
@@ -204,7 +214,6 @@ namespace UTEST {
         DisabledTest(const char* name): Test(name) { m_enabled = false; }
     };
 
-
     class TestList
     {
     public:
@@ -220,6 +229,7 @@ namespace UTEST {
         TestListAdder(Test* test);
     };
 
+    void init(int argc, char** argv);
     int runAllTests();
 }
 
@@ -281,5 +291,6 @@ namespace UTEST {
 #define UTEST_MAIN \
     int main(int argc, char** argv) \
     {                               \
+        UTEST::init(argc, argv);    \
         UTEST::runAllTests();       \
     }
