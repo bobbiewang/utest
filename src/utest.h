@@ -218,45 +218,45 @@ namespace UTEST {
 #define LOG_CHECK
 #endif
 
+#define SOME_CHECK_DETAIL UTEST::TestInfo::getName(), __FILE__, __LINE__
+
 #define CHECK_TRUE(actual) \
     LOG_CHECK \
-    (UTEST::checkTrue((actual), UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__, #actual)))
+    (UTEST::checkTrue((actual), UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)))
 
 #define CHECK_FALSE(actual) \
     LOG_CHECK \
-    (UTEST::checkFalse((actual), UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__, #actual)))
+    (UTEST::checkFalse((actual), UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)))
 
 #define CHECK_EQ(expected, actual) \
     LOG_CHECK \
-    (UTEST::checkEqual((expected), (actual), true, \
-                       UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__, #actual)))
+    (UTEST::checkEqual((expected), (actual), true, UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)))
 
 #define CHECK_NE(expected, actual) \
     LOG_CHECK \
-    (UTEST::checkEqual((expected), (actual), false, \
-                       UTEST::CheckDetail(UTEST::TestInfo::getName(), __FILE__, __LINE__, #actual)))
+    (UTEST::checkEqual((expected), (actual), false, UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)))
 
-#define TEST(name)                                           \
-    class Test##name : public UTEST::Test                    \
+#define TEST(Name)                                           \
+    class Test##Name : public UTEST::Test                    \
     {                                                        \
     public:                                                  \
-        Test##name() : Test(#name) {}                        \
+        Test##Name() : Test(#Name) {}                        \
         virtual void run();                                  \
-    } test##name##Instance;                                  \
+    } test##Name##Instance;                                  \
                                                              \
-    UTEST::TestListAdder adder##name(&test##name##Instance); \
+    UTEST::TestListAdder adder##Name(&test##Name##Instance); \
                                                              \
-    void Test##name::run()
+    void Test##Name::run()
 
-#define TEST_F(name, Fixture)                                                  \
-    class Test##Fixture##name : public UTEST::Test, public Fixture             \
+#define TEST_F(Name, Fixture)                                                  \
+    class Test##Fixture##Name : public UTEST::Test, public Fixture             \
     {                                                                          \
     public:                                                                    \
-        Test##Fixture##name() : Test(#Fixture "/" #name) {}                    \
+        Test##Fixture##Name() : Test(#Fixture "/" #Name) {}                    \
     private:                                                                   \
         virtual void run();                                                    \
-    } test##Fixture##name##Instance;                                           \
+    } test##Fixture##Name##Instance;                                           \
                                                                                \
-    UTEST::TestListAdder adder##Fixture##name(&test##Fixture##name##Instance); \
+    UTEST::TestListAdder adder##Fixture##Name(&test##Fixture##Name##Instance); \
                                                                                \
-    void Test##Fixture##name::run()
+    void Test##Fixture##Name::run()
