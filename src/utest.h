@@ -32,6 +32,9 @@
 //
 // The Ultra Light Weight C++ Unit Testing Framework (UTest)
 
+#ifndef UTEST_H
+#define UTEST_H
+
 #include <vector>
 #include <iostream>
 #include <sstream>
@@ -294,3 +297,5 @@ namespace UTEST {
         UTEST::init(argc, argv);    \
         UTEST::runAllTests();       \
     }
+
+#endif
