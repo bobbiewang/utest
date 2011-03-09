@@ -34,16 +34,18 @@
 
 #include "../src/utest.h"
 
-#pragma warning(disable : 4996)
+#if defined(WIN32) && defined(_MSC_VER)
+  #pragma warning(disable : 4996)
+#endif
 
-struct Strings
+struct DemoStrings
 {
     std::string ss;             // stl string
     const char* cstr;           // const string
     char*       dstr;           // dynamic string
     char        sstr[4];        // static string
 
-    Strings()
+    DemoStrings()
     {
         ss   = "abc";
         cstr = "abc";
@@ -52,18 +54,43 @@ struct Strings
         strcpy(sstr, "abc");
     }
 
-    ~Strings()
+    ~DemoStrings()
     {
         delete[] dstr;
     }
 };
 
-TEST_F(TestStringAssertions, Strings)
+TEST_F(TestStringAssertions, DemoStrings)
 {
-    CHECK_EQ("abc", ss.c_str()); // TODO: doesn't support CHECK_EQ("abc", ss), CHECK_EQ(ss, ss)
+    CHECK_EQ("abc", "abc");
+    // CHECK_EQ("abc", ss);
     CHECK_EQ("abc", cstr);
     CHECK_EQ("abc", dstr);
     CHECK_EQ("abc", sstr);
+
+    // CHECK_EQ(ss, "abc");
+    // CHECK_EQ(ss, ss);
+    // CHECK_EQ(ss, cstr);
+    // CHECK_EQ(ss, dstr);
+    // CHECK_EQ(ss, sstr);
+
+    CHECK_EQ(cstr, "abc");
+    // CHECK_EQ(cstr, ss);
+    CHECK_EQ(cstr, cstr);
+    CHECK_EQ(cstr, dstr);
+    CHECK_EQ(cstr, sstr);
+
+    CHECK_EQ(dstr, "abc");
+    // CHECK_EQ(dstr, ss);
+    CHECK_EQ(dstr, cstr);
+    CHECK_EQ(dstr, dstr);
+    CHECK_EQ(dstr, sstr);
+
+    CHECK_EQ(sstr, "abc");
+    // CHECK_EQ(sstr, ss);
+    CHECK_EQ(sstr, cstr);
+    CHECK_EQ(sstr, dstr);
+    CHECK_EQ(sstr, sstr);
 }
 
 struct HelperMethodInFixture
