@@ -44,14 +44,87 @@
 
 
 namespace UTEST {
-    class MonoState
+    class Test
     {
     public:
-        static bool getIncludeDisabled()       { return s_include_disabled; }
-        static void setIncludeDisabled(bool v) { s_include_disabled = v;    }
+        Test(const char* name);
+        Test(): m_next(NULL) {};
+        // use default ~Test()
+
+        const char* getName() const     { return m_name.c_str(); }
+        Test*       getNext() const     { return m_next;         }
+        void        setNext(Test* next) { m_next = next;         }
+        bool        enabled() const     { return m_enabled;      }
+
+        virtual void run() {};
+
+    protected:
+        bool        m_enabled;
 
     private:
-        static bool s_include_disabled;
+        std::string m_name;
+        Test*       m_next;
+    };
+
+    class DisabledTest : public Test
+    {
+    public:
+        DisabledTest(const char* name): Test(name) { m_enabled = false; }
+    };
+
+    class DataSpace
+    {
+    public:
+        DataSpace()
+        {
+            m_include_disabled = false;
+
+            m_test_list_head = NULL;
+
+            m_passed_count = 0;
+            m_failed_count = 0;
+        }
+
+        bool getIncludeDisabled() const { return m_include_disabled; }
+        void setIncludeDisabled(bool v) { m_include_disabled = v;    }
+
+        Test* getTestList() const { return m_test_list_head; }
+
+        void addTest(Test* test)
+        {
+            test->setNext(m_test_list_head);
+            m_test_list_head = test;
+        }
+
+        const char* getTestName() const    { return m_current_test_name.c_str(); }
+        void setTestName(const char* name) { m_current_test_name = name;         }
+
+        int  getPassedCount() const { return m_passed_count; }
+        void increasePassedCount()  { m_passed_count++;      }
+        int  getFailedCount() const { return m_failed_count; }
+        void increaseFailedCount()  { m_failed_count++;      }
+
+    private:
+        bool m_include_disabled;
+
+        Test* m_test_list_head;
+
+        std::string m_current_test_name;
+
+        int m_passed_count;
+        int m_failed_count;
+
+    };
+
+    inline DataSpace& getDataSpace()
+    {
+        static DataSpace ds;
+        return ds;
+    }
+
+    inline Test::Test(const char* name): m_name(name), m_next(NULL), m_enabled(true)
+    {
+        getDataSpace().addTest(this);
     };
 
     class CheckDetail
@@ -60,40 +133,16 @@ namespace UTEST {
         CheckDetail(const char* testname, const char* filename, int linenumber, const char* expression):
             m_testname(testname), m_filename(filename), m_linenumber(linenumber), m_expression(expression) {}
 
-          const char* getTestName() const     { return m_testname.c_str();   }
-          const char* getFileName() const     { return m_filename.c_str();   }
-          int         getLineNumber() const   { return m_linenumber;         }
-          const char* getExpression() const   { return m_expression.c_str(); }
+          const char* getTestName()   const { return m_testname.c_str();   }
+          const char* getFileName()   const { return m_filename.c_str();   }
+          int         getLineNumber() const { return m_linenumber;         }
+          const char* getExpression() const { return m_expression.c_str(); }
 
     private:
         std::string m_testname;
         std::string m_filename;
         int         m_linenumber;
         std::string m_expression;
-    };
-
-    class TestInfo
-    {
-    public:
-        static void        setName(const char* name) { s_name = name;         }
-        static const char* getName()                 { return s_name.c_str(); }
-
-    private:
-        static std::string s_name;
-    };
-
-    class TestResult
-    {
-    public:
-        static void increasePassedCount() { ++s_passed_count; }
-        static void increaseFailedCount() { ++s_failed_count; }
-
-        static int getPassedCount() { return s_passed_count; }
-        static int getFailedCount() { return s_failed_count; }
-
-    private:
-        static int s_passed_count;
-        static int s_failed_count;
     };
 
     class CheckFailure {};
@@ -147,10 +196,10 @@ namespace UTEST {
     void checkTrue(const T& actual, const CheckDetail& testdetail)
     {
         if (! actual) {
-            TestResult::increaseFailedCount();
+            getDataSpace().increaseFailedCount();
             reportFailure("true", "false", true, testdetail);
         } else {
-            TestResult::increasePassedCount();
+            getDataSpace().increasePassedCount();
         }
     }
 
@@ -158,10 +207,10 @@ namespace UTEST {
     void checkFalse(const T& actual, const CheckDetail& testdetail)
     {
         if (actual) {
-            TestResult::increaseFailedCount();
+            getDataSpace().increaseFailedCount();
             reportFailure("false", "true", true, testdetail);
         } else {
-            TestResult::increasePassedCount();
+            getDataSpace().increasePassedCount();
         }
     }
 
@@ -172,77 +221,123 @@ namespace UTEST {
                     const CheckDetail& testdetail)
     {
         if (check_traits<Expected, Actual>::equal(expected, actual) != require_eq) {
-            TestResult::increaseFailedCount();
+            getDataSpace().increaseFailedCount();
             reportFailure(expected, actual, require_eq, testdetail);
         } else {
-            TestResult::increasePassedCount();
+            getDataSpace().increasePassedCount();
         }
     }
 
-    void checkEqual(const char* expected, const char* actual,
-                    bool  require_eq, const CheckDetail& testdetail);
-    void checkEqual(char* expected, char* actual,
-                    bool  require_eq, const CheckDetail& testdetail);
-    void checkEqual(char* expected, const char* actual,
-                    bool  require_eq, const CheckDetail& testdetail);
+    inline void CheckStringsEqual(const char* expected, const char* actual,
+                                  bool require_eq, const CheckDetail& testdetail)
+    {
+        if (expected == NULL && actual == NULL) {
+            if (require_eq)
+                getDataSpace().increasePassedCount();
+            else {
+                getDataSpace().increaseFailedCount();
+                reportFailure("NULL", "NULL", require_eq, testdetail);
+            }
+            return;
+        }
+
+        if (expected == NULL ) {
+            if (require_eq)
+                reportFailure("NULL", actual, require_eq, testdetail);
+        }
+
+        if (actual == NULL) {
+            if (require_eq)
+                reportFailure(expected, "NULL", require_eq, testdetail);
+        }
+
+        if (expected == NULL || actual == NULL) {
+            if (require_eq)
+                getDataSpace().increaseFailedCount();
+            else
+                getDataSpace().increasePassedCount();
+            return;
+        }
+
+        if (require_eq && strcmp(expected, actual) == 0) {
+            getDataSpace().increasePassedCount();
+        } else {
+            getDataSpace().increaseFailedCount();
+            reportFailure(expected, actual, require_eq, testdetail);
+        }
+    }
+
+    inline void checkEqual(const char* expected, const char* actual,
+                           bool  require_eq, const CheckDetail& testdetail)
+    {
+        CheckStringsEqual(expected, actual, require_eq, testdetail);
+    }
+
+    inline void checkEqual(char* expected, char* actual,
+                           bool  require_eq, const CheckDetail& testdetail)
+    {
+        CheckStringsEqual(expected, actual, require_eq, testdetail);
+    }
+    inline void checkEqual(char* expected, const char* actual,
+                           bool  require_eq, const CheckDetail& testdetail)
+    {
+        CheckStringsEqual(expected, actual, require_eq, testdetail);
+    }
     // TODO: why cannot use check_traits to compare "xxx" with char[4]
-    void checkEqual(const char* expected, char* actual,
-                    bool  require_eq, const CheckDetail& testdetail);
-
-    class Test
+    inline void checkEqual(const char* expected, char* actual,
+                           bool  require_eq, const CheckDetail& testdetail)
     {
-    public:
-        Test(const char* name): m_name(name), m_next(NULL), m_enabled(true) {};
-        Test(): m_next(NULL) {};
-        // use default ~Test()
+        CheckStringsEqual(expected, actual, require_eq, testdetail);
+    }
 
-        const char* getName() const     { return m_name.c_str(); }
-        Test*       getNext() const     { return m_next;         }
-        void        setNext(Test* next) { m_next = next;         }
-        bool        enabled() const     { return m_enabled;      }
-
-        virtual void run() {};
-
-    protected:
-        bool        m_enabled;
-
-    private:
-        std::string m_name;
-        Test*       m_next;
-    };
-
-    class DisabledTest : public Test
+    inline int utest_main(int argc, char** argv)
     {
-    public:
-        DisabledTest(const char* name): Test(name) { m_enabled = false; }
-    };
+        if (argc == 2 && strcmp("--include-disabled", argv[1]) == 0)
+            getDataSpace().setIncludeDisabled(true);
 
-    class TestList
-    {
-    public:
-        static void addTest(Test* test);
-        static void run();
-    private:
-        static Test* s_head;
-    };
+        Test* test = getDataSpace().getTestList();
 
-    class TestListAdder
-    {
-    public:
-        TestListAdder(Test* test);
-    };
+        while(test) {
+            getDataSpace().setTestName(test->getName());
+            try {
+                if (test->enabled() || getDataSpace().getIncludeDisabled())
+                    test->run();
+            }
+            catch (CheckFailure&)
+            {
+                // can count failed tests later
+            }
 
-    void init(int argc, char** argv);
-    int runAllTests();
+            test = test->getNext();
+        }
+
+        int passed_count = getDataSpace().getPassedCount();
+        int failed_count = getDataSpace().getFailedCount();
+        int total_count  = passed_count + failed_count;
+
+        if (total_count == 0) {
+            std::cout << "No check!" << std::endl;
+            return 1;
+        }
+
+        if (failed_count)
+            std::cout << "Summary : error: " << failed_count << " out of " << total_count
+                      << " checks failed." << std::endl;
+        else
+            std::cout << "Summary : All " << total_count << " checks passed." << std::endl;
+
+        return failed_count;
+    }
 }
 
 #ifdef DO_CHECK_LOG
-#define LOG_CHECK std::cout << "TEST " << UTEST::TestInfo::getName() << " @ " << __FILE__ << ":" << __LINE__ << std::endl;
+#define LOG_CHECK std::cout << "TEST " << UTEST::getDataSpace().getTestName() \
+                            << " @ " << __FILE__ << ":" << __LINE__ << std::endl;
 #else
 #define LOG_CHECK
 #endif
 
-#define SOME_CHECK_DETAIL UTEST::TestInfo::getName(), __FILE__, __LINE__
+#define SOME_CHECK_DETAIL UTEST::getDataSpace().getTestName(), __FILE__, __LINE__
 
 #define CHECK_TRUE(actual) \
     LOG_CHECK \
@@ -274,8 +369,6 @@ namespace UTEST {
         virtual void run();                                  \
     } test##Name##Instance;                                  \
                                                              \
-    UTEST::TestListAdder adder##Name(&test##Name##Instance); \
-                                                             \
     void Test##Name::run()
 
 #define TEST_F_EX(Name, Fixture, TestClass)                                    \
@@ -287,15 +380,11 @@ namespace UTEST {
         virtual void run();                                                    \
     } test##Fixture##Name##Instance;                                           \
                                                                                \
-    UTEST::TestListAdder adder##Fixture##Name(&test##Fixture##Name##Instance); \
-                                                                               \
     void Test##Fixture##Name::run()
 
 #define UTEST_MAIN \
     int main(int argc, char** argv) \
     {                               \
-        UTEST::init(argc, argv);    \
-        UTEST::runAllTests();       \
+        return UTEST::utest_main(argc, argv); \
     }
-
 #endif
