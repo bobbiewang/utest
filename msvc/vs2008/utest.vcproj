@@ -175,10 +175,6 @@
 				RelativePath="..\..\tests\main.cpp"
 				>
 			</File>
-			<File
-				RelativePath="..\..\src\utest.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
