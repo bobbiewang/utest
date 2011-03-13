@@ -199,6 +199,17 @@ namespace UTEST {
         }
     }
 
+    template< typename T >
+    void checkNULL(const T* actual, const CheckDetail& testdetail)
+    {
+        if (actual != NULL) {
+            getDataSpace().increaseFailedCount();
+            reportFailure("NULL", actual, true, testdetail);
+        } else {
+            getDataSpace().increasePassedCount();
+        }
+    }
+
     template< typename Expected, typename Actual >
     void checkEqual(const Expected&    expected,
                     const Actual&      actual,
@@ -331,6 +342,10 @@ namespace UTEST {
 #define CHECK_FALSE(actual) \
     LOG_CHECK \
     (UTEST::checkFalse((actual), UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)))
+
+#define CHECK_NULL(actual) \
+    LOG_CHECK \
+    (UTEST::checkNULL((actual), UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)))
 
 #define CHECK_EQ(expected, actual) \
     LOG_CHECK \
