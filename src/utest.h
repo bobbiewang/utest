@@ -49,7 +49,6 @@ namespace UTEST {
     public:
         Test(const char* name);
         Test(): m_next(NULL) {};
-        // use default ~Test()
 
         const char* getName() const     { return m_name.c_str(); }
         Test*       getNext() const     { return m_next;         }
@@ -158,21 +157,7 @@ namespace UTEST {
         else
             os << "Exprectd NOT \"";
 
-        // Following codes handle NULL string, since os<<(const
-        // char*)NULL will cause fatal error
-        if (expected == 0)
-            os << 0;
-        else
-            os << expected;
-
-        os << "\" but was \"";
-
-        if (actual == 0)
-            os << 0;
-        else
-            os << actual;
-
-        os  << "\"";
+        os << expected << "\" but was \"" << actual << "\"";
 
         std::cout << testdetail.getFileName() << "(" << testdetail.getLineNumber()
                   << ") : error: Failure in  *" << testdetail.getTestName()
