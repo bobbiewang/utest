@@ -127,7 +127,7 @@ TEST_F(Demo, HelperMethodInFixture)
 TEST(SampleFailure)
 {
     int number = 2;
-    CHECK_EQ(1, number);
+    CHECK_EQ(1, number) << "number is 2";
 
     CHECK_FALSE("Cannot reach here because previous check fails.");
 }
