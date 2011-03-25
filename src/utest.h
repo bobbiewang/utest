@@ -71,6 +71,24 @@ namespace UTEST {
         DisabledTest(const char* name): Test(name) { m_enabled = false; }
     };
 
+    class StringCache
+    {
+    public:
+        bool operator<<(const char* str) { m_cache = str; return true; }
+
+        std::string str()
+        {
+            std::string s = m_cache;
+            m_cache.clear();
+            return s;
+        }
+
+        operator bool() { return true; }
+
+    private:
+        std::string m_cache;
+    };
+
     class DataSpace
     {
     public:
@@ -98,6 +116,8 @@ namespace UTEST {
         const char* getTestName() const    { return m_current_test_name.c_str(); }
         void setTestName(const char* name) { m_current_test_name = name;         }
 
+        StringCache& getUserMsg() { return m_user_msg; }
+
         int  getPassedCount() const { return m_passed_count; }
         void increasePassedCount()  { m_passed_count++;      }
         int  getFailedCount() const { return m_failed_count; }
@@ -110,9 +130,10 @@ namespace UTEST {
 
         std::string m_current_test_name;
 
+        StringCache m_user_msg;
+
         int m_passed_count;
         int m_failed_count;
-
     };
 
     inline DataSpace& getDataSpace()
@@ -152,6 +173,10 @@ namespace UTEST {
     {
         std::ostringstream os;
 
+        std::string user_msg = getDataSpace().getUserMsg().str();
+        if (!user_msg.empty())
+            os << user_msg << ": ";
+
         if (require_eq)
             os << "Expected \"";
         else
@@ -178,7 +203,7 @@ namespace UTEST {
     };
 
     template< typename T >
-    void checkTrue(const T& actual, const CheckDetail& testdetail)
+    bool& checkTrue(const T& actual, const CheckDetail& testdetail)
     {
         if (! actual) {
             getDataSpace().increaseFailedCount();
@@ -186,10 +211,13 @@ namespace UTEST {
         } else {
             getDataSpace().increasePassedCount();
         }
+
+        static bool useless = true;
+        return useless;
     }
 
     template< typename T >
-    void checkFalse(const T& actual, const CheckDetail& testdetail)
+    bool& checkFalse(const T& actual, const CheckDetail& testdetail)
     {
         if (actual) {
             getDataSpace().increaseFailedCount();
@@ -197,10 +225,13 @@ namespace UTEST {
         } else {
             getDataSpace().increasePassedCount();
         }
+
+        static bool useless = true;
+        return useless;
     }
 
     template< typename T >
-    void checkNULL(const T* actual, const CheckDetail& testdetail)
+    bool& checkNULL(const T* actual, const CheckDetail& testdetail)
     {
         if (actual != NULL) {
             getDataSpace().increaseFailedCount();
@@ -208,13 +239,16 @@ namespace UTEST {
         } else {
             getDataSpace().increasePassedCount();
         }
+
+        static bool useless = true;
+        return useless;
     }
 
     template< typename Expected, typename Actual >
-    void checkEqual(const Expected&    expected,
-                    const Actual&      actual,
-                    bool               require_eq,
-                    const CheckDetail& testdetail)
+    bool& checkEqual(const Expected&    expected,
+                     const Actual&      actual,
+                     bool               require_eq,
+                     const CheckDetail& testdetail)
     {
         if (check_traits<Expected, Actual>::equal(expected, actual) != require_eq) {
             getDataSpace().increaseFailedCount();
@@ -222,19 +256,24 @@ namespace UTEST {
         } else {
             getDataSpace().increasePassedCount();
         }
+
+        static bool useless = true;
+        return useless;
     }
 
-    inline void CheckStringsEqual(const char* expected, const char* actual,
+    inline bool& CheckStringsEqual(const char* expected, const char* actual,
                                   bool require_eq, const CheckDetail& testdetail)
     {
+        static bool useless = true;
+
         if (expected == NULL && actual == NULL) {
-            if (require_eq)
+            if (require_eq) {
                 getDataSpace().increasePassedCount();
-            else {
+            } else {
                 getDataSpace().increaseFailedCount();
                 reportFailure("NULL", "NULL", require_eq, testdetail);
             }
-            return;
+            return useless;
         }
 
         if (expected == NULL ) {
@@ -252,7 +291,7 @@ namespace UTEST {
                 getDataSpace().increaseFailedCount();
             else
                 getDataSpace().increasePassedCount();
-            return;
+            return useless;
         }
 
         if (require_eq && strcmp(expected, actual) == 0) {
@@ -261,29 +300,31 @@ namespace UTEST {
             getDataSpace().increaseFailedCount();
             reportFailure(expected, actual, require_eq, testdetail);
         }
+
+        return useless;
     }
 
-    inline void checkEqual(const char* expected, const char* actual,
+    inline bool& checkEqual(const char* expected, const char* actual,
                            bool  require_eq, const CheckDetail& testdetail)
     {
-        CheckStringsEqual(expected, actual, require_eq, testdetail);
+        return CheckStringsEqual(expected, actual, require_eq, testdetail);
     }
 
-    inline void checkEqual(char* expected, char* actual,
+    inline bool& checkEqual(char* expected, char* actual,
                            bool  require_eq, const CheckDetail& testdetail)
     {
-        CheckStringsEqual(expected, actual, require_eq, testdetail);
+        return CheckStringsEqual(expected, actual, require_eq, testdetail);
     }
-    inline void checkEqual(char* expected, const char* actual,
+    inline bool& checkEqual(char* expected, const char* actual,
                            bool  require_eq, const CheckDetail& testdetail)
     {
-        CheckStringsEqual(expected, actual, require_eq, testdetail);
+        return CheckStringsEqual(expected, actual, require_eq, testdetail);
     }
     // TODO: why cannot use check_traits to compare "xxx" with char[4]
-    inline void checkEqual(const char* expected, char* actual,
+    inline bool& checkEqual(const char* expected, char* actual,
                            bool  require_eq, const CheckDetail& testdetail)
     {
-        CheckStringsEqual(expected, actual, require_eq, testdetail);
+        return CheckStringsEqual(expected, actual, require_eq, testdetail);
     }
 
     inline int utest_main(int argc, char** argv)
@@ -334,26 +375,27 @@ namespace UTEST {
 #endif
 
 #define SOME_CHECK_DETAIL UTEST::getDataSpace().getTestName(), __FILE__, __LINE__
+#define USER_MSG UTEST::getDataSpace().getUserMsg()
 
 #define CHECK_TRUE(actual) \
     LOG_CHECK \
-    (UTEST::checkTrue((actual), UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)))
+    UTEST::checkTrue((actual), UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)) = USER_MSG
 
 #define CHECK_FALSE(actual) \
     LOG_CHECK \
-    (UTEST::checkFalse((actual), UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)))
+    UTEST::checkFalse((actual), UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)) = USER_MSG
 
 #define CHECK_NULL(actual) \
     LOG_CHECK \
-    (UTEST::checkNULL((actual), UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)))
+    UTEST::checkNULL((actual), UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)) = USER_MSG
 
 #define CHECK_EQ(expected, actual) \
     LOG_CHECK \
-    (UTEST::checkEqual((expected), (actual), true, UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)))
+    UTEST::checkEqual((expected), (actual), true, UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)) = USER_MSG
 
 #define CHECK_NE(expected, actual) \
     LOG_CHECK \
-    (UTEST::checkEqual((expected), (actual), false, UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)))
+    UTEST::checkEqual((expected), (actual), false, UTEST::CheckDetail(SOME_CHECK_DETAIL, #actual)) = USER_MSG
 
 #define TEST(Name)     TEST_EX(Name, UTEST::Test)
 #define DIS_TEST(Name) TEST_EX(Name, UTEST::DisabledTest)
