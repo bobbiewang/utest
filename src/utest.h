@@ -87,7 +87,8 @@ namespace UTEST {
             return s;
         }
 
-        operator bool() { return true; }
+        void clear()    { m_cache.clear(); }
+        operator bool() { return true;     }
 
     private:
         std::string m_cache;
@@ -220,6 +221,7 @@ namespace UTEST {
             getDataSpace().increasePassedCount();
         }
 
+        getDataSpace().getUserMsg().clear();
         static bool useless = true;
         return useless;
     }
@@ -234,6 +236,7 @@ namespace UTEST {
             getDataSpace().increasePassedCount();
         }
 
+        getDataSpace().getUserMsg().clear();
         static bool useless = true;
         return useless;
     }
@@ -248,6 +251,7 @@ namespace UTEST {
             getDataSpace().increasePassedCount();
         }
 
+        getDataSpace().getUserMsg().clear();
         static bool useless = true;
         return useless;
     }
@@ -265,6 +269,7 @@ namespace UTEST {
             getDataSpace().increasePassedCount();
         }
 
+        getDataSpace().getUserMsg().clear();
         static bool useless = true;
         return useless;
     }
@@ -281,6 +286,8 @@ namespace UTEST {
                 getDataSpace().increaseFailedCount();
                 reportFailure("NULL", "NULL", require_eq, testdetail);
             }
+
+            getDataSpace().getUserMsg().clear();
             return useless;
         }
 
@@ -299,6 +306,8 @@ namespace UTEST {
                 getDataSpace().increaseFailedCount();
             else
                 getDataSpace().increasePassedCount();
+
+            getDataSpace().getUserMsg().clear();
             return useless;
         }
 
@@ -309,6 +318,7 @@ namespace UTEST {
             reportFailure(expected, actual, require_eq, testdetail);
         }
 
+        getDataSpace().getUserMsg().clear();
         return useless;
     }
 
