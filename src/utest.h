@@ -191,6 +191,10 @@ namespace UTEST {
                   << "    Expected: " << expected << std::endl
                   << "      Actual: " << actual << std::endl;
 
+#if defined(_MSC_VER) && defined(DEBUG)
+     if (IsDebuggerPresent() ) { __debugbreak(); }
+#endif
+
         throw CheckFailure();
     }
 
