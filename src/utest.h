@@ -311,7 +311,8 @@ namespace UTEST {
             return useless;
         }
 
-        if (require_eq && strcmp(expected, actual) == 0) {
+        if (require_eq && strcmp(expected, actual) == 0 ||
+            !require_eq && strcmp(expected, actual) != 0) {
             getDataSpace().increasePassedCount();
         } else {
             getDataSpace().increaseFailedCount();
