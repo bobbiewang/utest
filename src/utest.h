@@ -42,6 +42,10 @@
 #include <cstdlib>
 #include <cstring>
 
+#if defined(_MSC_VER) && defined(DEBUG)
+#include <intrin.h>
+extern "C" __declspec(dllimport) int __stdcall IsDebuggerPresent();
+#endif
 
 namespace UTEST {
     class Test
